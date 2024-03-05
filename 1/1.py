@@ -1,4 +1,4 @@
-import math
+
 import numpy as np
 import matplotlib.pyplot as plt
 from csv import reader
@@ -61,25 +61,30 @@ plt.plot(xValues, yValues, 'ro')
 plt.suptitle("Lagrange polynomial")
 plt.grid()
 plt.show()
-# First Newton interpolation formula
-def getNewtonPolynomial(x_val, y_val):
-    n = len(x_val) - 1
-    div_diff = [[0] * (n + 1) for _ in range(n + 1)]
-    div_diff[0] = y_val
+# Newton's forward interpolation
 
-    for j in range(1, n + 1):
-        for i in range(n - j + 1):
-            div_diff[j][i] = (div_diff[j - 1][i + 1] - div_diff[j - 1][i]) / (x_val[i + j] - x_val[i])
 
-    def NewtonPolynomial(x):
-        result = div_diff[0][0]
-        prod = 1
-        for i in range(1, n + 1):
-            prod *= (x - x_val[i - 1])
-            result += div_diff[i][0] * prod
-        return result
+def getNewtonsInterpolationF(x_val, y_val):
+    fdiff = []
+    for i in range(1, len(x_val)):
+        res = 0
+        for j in range(i + 1):
+            num = 1
+            for k in range(i + 1):
+                if k != j:
+                    num *= x_val[j] - x_val[k]
+            res += y_val[j] / num
+        fdiff.append(res)
+    return fdiff
 
-    return NewtonPolynomial
+def NewtonsInterpolation(x, x_val, y_val, fdiff):
+    result = y_val[0]
+    for k in range(1, len(y_val)):
+        additive = 1
+        for j in range(k):
+            additive *= (x - x_val[j])
+        result += fdiff[k - 1] * additive
+    return result
 
 t = 3
 year = 13
@@ -94,35 +99,42 @@ while len(xValues) != 6:
         count += 1
     year += 1
 
-polynomial = getNewtonPolynomial(xValues, yValues)
-x = np.arange(xValues[0], xValues[count] + 0.1, 0.1)
-plt.plot(x, polynomial(x))
+X = np.arange(xValues[0], xValues[count] + 0.1, 0.1)
+fdiff = getNewtonsInterpolationF(xValues, yValues)
+
+plt.plot(X, [NewtonsInterpolation(x, xValues, yValues, fdiff) for x in X])
 plt.plot(xValues, yValues, 'ro')
-plt.suptitle("Newton polynomial (Formula 1)")
+plt.suptitle("Newton's forward interpolation")
 plt.grid()
 plt.show()
-# Second Newton interpolation formula
-def getSecondNewtonPolynomial(x_val, y_val):
-    n = len(x_val) - 1
-    div_diff = [[0] * (n + 1) for _ in range(n + 1)]
-    div_diff[0] = y_val
 
-    for j in range(1, n + 1):
-        for i in range(n - j + 1):
-            div_diff[j][i] = (div_diff[j - 1][i + 1] - div_diff[j - 1][i]) / (x_val[i + j] - x_val[i])
+# Newton's back interpolation
 
-    def SecondNewtonPolynomial(x):
-        result = div_diff[0][0]
-        prod = 1
-        for i in range(1, n + 1):
-            prod *= (x - x_val[i - 1])
-            result += div_diff[i][0] * prod / math.factorial(i)
-        return result
 
-    return SecondNewtonPolynomial
+def getNewtonsInterpolationB(x_val, y_val):
+    fdiff = []
+    for i in range(1, len(x_val)):
+        res = 0
+        for j in range(i + 1):
+            num = 1
+            for k in range(i + 1):
+                if k != j:
+                    num *= x_val[len(x_val) - 1 - j] - x_val[len(x_val) - 1 - k]
+            res += y_val[len(x_val) - 1 - j] / num
+        fdiff.append(res)
+    return fdiff
+
+def NewtonsPolynomial(x, x_val, y_val, fdiff):
+    result = y_val[len(x_val) - 1]
+    for k in range(1, len(y_val)):
+        additive = 1
+        for j in range(k):
+            additive *= (x - x_val[len(x_val) - 1 - j])
+        result += fdiff[k - 1] * additive
+    return result
 
 t = 3
-year = 19
+year = 13
 xValues = []
 yValues = []
 count = -1
@@ -134,13 +146,16 @@ while len(xValues) != 6:
         count += 1
     year += 1
 
-polynomial = getSecondNewtonPolynomial(xValues, yValues)
-x = np.arange(xValues[0], xValues[count] + 0.1, 0.1)
-plt.plot(x, polynomial(x))
+X = np.arange(xValues[0], xValues[count] + 0.1, 0.1)
+fdiff = getNewtonsInterpolationB(xValues, yValues)
+
+plt.plot(X, [NewtonsPolynomial(x, xValues, yValues, fdiff) for x in X])
 plt.plot(xValues, yValues, 'ro')
-plt.suptitle("Newton polynomial (Formula 2)")
+plt.suptitle("Newton's back interpolation")
 plt.grid()
 plt.show()
+
+
 # Polynomial approximation
 def getPolynomialApproximation(x_val, y_val, degree):
     coefficients = np.polyfit(x_val, y_val, degree)

@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def s(x_val, k):
+    summ = 0
+    for i in range(len(x_val)):
+        summ += ((x_val[i]) ** k)
+    return summ
+
+def sO(y_val, x_val, k):
+    summ = 0
+    for i in range(len(y_val)):
+        summ += (y_val[i] * (x_val[i] ** k))
+    return summ
+
+t = 3
+
+year = 0
+xValues = []
+yValues = []
+count = -1
+
+for i in range(0, len(data)):
+    if data[year][t] < 999.9:
+        xValues.append(data[year][0])
+        yValues.append(data[year][t])
+        count += 1
+
+    year += 1
+
+X = [
+    [s(xValues, 6), s(xValues, 5), s(xValues, 4), s(xValues, 3)],
+    [s(xValues, 5), s(xValues, 4), s(xValues, 3), s(xValues, 2)],
+    [s(xValues, 4), s(xValues, 3), s(xValues, 2), s(xValues, 1)],
+    [s(xValues, 3), s(xValues, 2), s(xValues, 1), len(xValues)]
+]
+
+Y = [
+    sO(yValues, xValues, 3),
+    sO(yValues, xValues, 2),
+    sO(yValues, xValues, 1),
+    s(yValues, 1)
+]
+
+coefficients = np.linalg.solve(X, Y)
+a0 = coefficients[0]
+a1 = coefficients[1]
+a2 = coefficients[2]
+a3 = coefficients[3]
+
+X = np.arange(xValues[0], xValues[len(xValues) - 1] + 0.1, 0.1)
+b = np.array([a0 * x ** 3 + a1 * x ** 2 + a2 * x + a3 for x in X])
+
+plt.plot(xValues, yValues, 'ro')
+plt.plot(X, b)
+plt.show()

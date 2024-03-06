@@ -1,0 +1,10 @@
+nextCount = 0
+
+while count < 5 + nextCount:
+    if data[year][t] < 999.9:
+        xValues.append(data[year][0])
+        yValues.append(data[year][t])
+        count += 1
+    else:
+        nextCount += 1
+    year += 1

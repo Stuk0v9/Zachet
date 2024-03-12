@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from csv import reader
+
+# Чтение csv
+file = "C:/Users/Кирилл/Desktop/НЕ ТРОГАТЬ/24_Чита.csv"
+
+data = []
+with open(file, "r") as rfile:
+    for row in reader(rfile):
+        data.append(row)
+    data.pop(0)
+    for i in range(len(data)):
+        for j in range(len(data[i])):
+            data[i][j] = float(data[i][j])
+
+# Кубический сплайн
+t = 3
+year = 13
+xValues = []
+yValues = []
+count = -1
+
+while len(xValues) != 12:
+    if data[year][t] < 999.9:
+        xValues.append(data[year][0])
+        yValues.append(data[year][t])
+        count += 1
+    year += 1
+
+x = np.arange(xValues[0], xValues[count] + 0.1, 0.1)
+
+# Расчет коэффициентов сплайна
+n = len(xValues)
+h = np.zeros(n-1)
+for i in range(n-1):
+    h[i] = xValues[i+1] - xValues[i]
+
+alpha = np.zeros(n)
+for i in range(1, n-1):
+    alpha[i] = (3/h[i]) * (yValues[i+1] - yValues[i]) - (3/h[i-1]) * (yValues[i] - yValues[i-1])
+
+l = np.zeros(n)
+u = np.zeros(n)
+z = np.zeros(n)
+l[0] = 1
+
+for i in range(1, n-1):
+    l[i] = 2 * (xValues[i+1] - xValues[i-1]) - h[i-1]*u[i-1]
+    u[i] = h[i] / l[i]
+    z[i] = (alpha[i] - h[i-1]*z[i-1]) / l[i]
+
+l[n-1] = 1
+z[n-1] = 0
+c = np.zeros(n)
+b = np.zeros(n)
+d = np.zeros(n)
+
+for j in range(n-2, -1, -1):
+    c[j] = z[j] - u[j] * c[j+1]
+    b[j] = (yValues[j+1] - yValues[j]) / h[j] - h[j] * (c[j+1] + 2*c[j]) / 3
+    d[j] = (c[j+1] - c[j]) / (3 * h[j])
+
+# Построение графика
+x_plot = []
+y_plot = []
+
+for i in range(n-1):
+    x_sp = np.arange(xValues[i], xValues[i+1], 0.1)
+    y_sp = yValues[i] + b[i]*(x_sp - xValues[i]) + c[i]*(x_sp - xValues[i])**2 + d[i]*(x_sp - xValues[i])**3
+    x_plot.extend(x_sp)
+    y_plot.extend(y_sp)
+
+plt.plot(x_plot, y_plot, label='Cubic Spline')
+plt.plot(xValues, yValues, 'ro', label='Original Data')
+plt.legend()
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Cubic Spline Interpolation')
+plt.grid(True)
+plt.show()

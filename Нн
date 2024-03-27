@@ -1,0 +1,22 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = np.fromfile("var14_z1.bin", dtype=np.int16)
+h = 10000
+t_axe = np.linspace(0, len(data) / h, len(data))
+moving_avg = np.zeros_like(data, dtype=np.float64)
+sum = np.sum(data[:h])
+for i in range(len(data)):
+    start = max(0, i - h // 2)
+    end = min(len(data), i + h // 2)
+    sum += data[end - 1]
+    sum -= data[start - 1]
+    moving_avg[i] = sum / (end - start)
+print(data)
+print(moving_avg)
+detrended_data = data - moving_avg  # Детрендированные данные
+plt.plot(t_axe, data, alpha=0.5, color='green')
+plt.plot(t_axe, moving_avg, color='red')
+#plt.plot(t_axe, detrended_data, alpha=0.5, color='yellow')  # График детрендированных данных
+plt.grid(True)
+plt.show()

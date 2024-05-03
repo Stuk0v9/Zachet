@@ -1,0 +1,75 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def draw_cloud(n):
+    coords = np.random.normal(size=(n, 2), loc=0, scale=0.5)
+    label = coords[:, 1]
+    coords = np.r_[coords, np.random.normal(size=(n, 2), loc=-2, scale=0.5)]
+    label = np.r_[label, coords[n:, 1]]
+    plt.clf()
+    plt.scatter(coords[:, 0], coords[:, 1], c=label, s=50, cmap='winter', edgecolors='black', linewidth=1)
+    plt.grid()
+    return coords
+
+def determ(P1, P2, P3):
+    return P1[0]*P2[1] + P3[0]*P1[1] + P2[0]*P3[1] - P3[0]*P2[1] - P2[0]*P1[1] - P1[0]*P3[1]
+
+def obolochka(n):
+    coords = draw_cloud(n)
+    coords = sorted(coords, key=lambda x: x[0])
+
+    def postroenie_positive(P1, Pn):
+        max_det = -1
+        index = -1
+        n = len(coords)
+        for i in range(1, n - 1):
+            det_i = determ(P1, Pn, coords[i])
+            if det_i > 0 and det_i > max_det:
+                max_det = det_i
+                Pi = coords[i]
+                index = i
+        if max_det == -1:
+            return
+        points_pos.append(Pi)
+        coords.pop(index)
+        postroenie_positive(Pi, Pn)
+        postroenie_positive(P1, Pi)
+
+    def postroenie_negative(P1, Pn):
+        min_det = 1
+        index = 1
+        n = len(coords)
+        for i in range(1, n - 1):
+            det_i = determ(P1, Pn, coords[i])
+            if det_i < 0 and det_i < min_det:
+                min_det = det_i
+                Pi = coords[i]
+                index = i
+        if min_det == 1:
+            return 0
+        points_neg.append(Pi)
+        coords.pop(index)
+        postroenie_negative(Pi, Pn)
+        postroenie_negative(P1, Pi)
+
+    n = len(coords)
+    P1 = coords[0]
+    Pn = coords[n - 1]
+    points_pos = list([P1])
+    postroenie_positive(P1, Pn)
+    points_pos = sorted(points_pos, key=lambda x: x[0])
+
+    n = len(coords)
+    P1 = coords[0]
+    Pn = coords[n - 1]
+    points_neg = list([Pn])
+    postroenie_negative(P1, Pn)
+    points_neg = sorted(points_neg, key=lambda x: x[0], reverse=True)
+    points_neg.append(P1)
+
+    points = points_pos + points_neg
+    x_coords = [point[0] for point in points]
+    y_coords = [point[1] for point in points]
+    plt.plot(x_coords, y_coords, 'r')
+
+obolochka(100)
